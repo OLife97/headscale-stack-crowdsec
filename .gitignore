@@ -1,0 +1,9 @@
+.env
+caddy/data/
+caddy/logs/
+crowdsec/data/
+headscale/data/
+headscale/config/private.key
+headscale/config/noise_private.key
+.DS_Store
+Thumbs.db

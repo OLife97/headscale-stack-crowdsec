@@ -1,0 +1,5 @@
+# crowdsec acquis.yaml (log sources, e.g., caddy)
+filenames:
+  - /var/log/caddy/*.log
+labels:
+  type: caddy

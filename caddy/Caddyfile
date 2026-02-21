@@ -1,0 +1,41 @@
+# ==========================================
+# CONFIGURAZIONE GLOBALE
+# ==========================================
+{
+    http_port  8080
+    https_port 8443
+
+    order crowdsec first
+
+    # UPDATE IP ON Cloudflare (DDNS)
+    dynamic_dns {
+        provider cloudflare {env.CF_API_TOKEN}
+        domains {
+            {env.DOMAIN} {env.SUBDOMAIN}
+        }
+        check_interval 5m
+        ttl            1h
+        ip_source simple_http https://icanhazip.com
+        ip_source simple_http https://api64.ipify.org
+        }
+    }
+
+    # CrowdSec Connection
+    crowdsec {
+        api_url http://crowdsec:8080
+        api_key {env.CROWDSEC_BOUNCER_KEY}
+        ticker_interval 15s
+    }
+}
+
+# VHOST: HEADSCALE
+{env.FULLDOMAIN} {
+    crowdsec
+    log {
+        output file /var/log/caddy/access.log
+        format json
+        roll_size 10MB
+        roll_keep 10
+    }
+    reverse_proxy headscale:8080
+}
