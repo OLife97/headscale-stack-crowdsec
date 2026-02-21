@@ -33,7 +33,7 @@ control server — secured by [CrowdSec](https://www.crowdsec.net) and reverse-p
 ## 📁 Directory Structure
 
 ```
-headscale-stack/
+headscale-stack-crowdsec/
 ├── compose.yaml
 ├── .env                        # ← NOT committed (generated from .env.example)
 ├── .env.example                # Template with all required variables
@@ -75,8 +75,8 @@ headscale-stack/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/headscale-stack.git
-cd headscale-stack
+git clone https://github.com/olife97/headscale-stack-crowdsec.git
+cd headscale-stack-crowdsec
 ```
 
 ### 2. Run the initialization script
