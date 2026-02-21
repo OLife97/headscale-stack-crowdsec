@@ -1,7 +1,8 @@
 services:
   headscale:
-    image: headscale/headscale:${HEADSCALE_VERSION:-latest}
+    image: docker.io/headscale/headscale:${HEADSCALE_VERSION:-latest}
     container_name: headscale
+    hostname: headscale
     restart: unless-stopped
     command: serve
     ports:
@@ -12,13 +13,16 @@ services:
     env_file: .env
     environment:
       - HEADSCALE_SERVER_URL=https://${SUBDOMAIN}.${DOMAIN}
+      - HEADSCALE_LISTEN_ADDR=0.0.0.0:8080
+      - HEADSCALE_METRICS_LISTEN_ADDR=0.0.0.0:9090
+      - HEADSCALE_GRPC_LISTEN_ADDR=0.0.0.0:50443
     networks:
       - proxy
     depends_on:
       caddy:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "headscale", "health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -33,9 +37,10 @@ services:
       - "443:8443/udp" # HTTP/3 (QUIC)
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./caddy/data:/data
-      - ./caddy/config:/config
-      - ./caddy/logs:/var/log/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+      - ./caddy/data/GeoLite2-Country.mmdb:/data/GeoLite2-Country.mmdb:ro
     environment:
       - DOMAIN=${DOMAIN}
       - SUBDOMAIN=${SUBDOMAIN}
@@ -49,7 +54,7 @@ services:
       crowdsec:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/config/"]
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -63,7 +68,7 @@ services:
     volumes:
       - ./crowdsec/data:/var/lib/crowdsec/data
       - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
-      - ./caddy/logs:/var/log/caddy:ro
+      - caddy_logs:/var/log/caddy:ro
       - ./crowdsec/config/profiles.yaml:/etc/crowdsec/profiles.yaml:ro
       - ./crowdsec/config/notifications/http.yaml:/etc/crowdsec/notifications/http.yaml:ro
     environment:
@@ -84,3 +89,7 @@ services:
 networks:
   proxy:
     driver: bridge
+volumes:
+  caddy_data:
+  caddy_config:
+  caddy_logs:

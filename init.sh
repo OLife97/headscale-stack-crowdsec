@@ -3,26 +3,29 @@
 
 set -e
 
-echo "Creating necessary directories..."
-mkdir -p caddy/config caddy/data caddy/logs
+echo "Creating necessary directories for bind mounts..."
+# We only create directories that are explicitly bind-mounted in compose.yaml.
+# Caddy's config and logs are  handled natively by Docker Volumes.
+mkdir -p caddy/data
 mkdir -p crowdsec/config/notifications crowdsec/data
 mkdir -p headscale/config headscale/data
 
-echo "Creating placeholder files to avoid directory bind issues..."
-
+echo "Preparing Headscale configuration..."
+# Headscale crashes if config.yaml is empty. We download the official template
 if [ ! -f headscale/config/config.yaml ]; then
-  touch headscale/config/config.yaml
-fi
+  echo "Downloading default Headscale config..."
+  wget -qO headscale/config/config.yaml "https://raw.githubusercontent.com/juanfont/headscale/main/config-example.yaml"
+  
+  sed -i 's|db_path:.*|db_path: /var/lib/headscale/db.sqlite|' headscale/config/config.yaml
+  echo "✅ Headscale config downloaded."
+fi  
 
-if [ ! -f headscale/data/db.sqlite ]; then
-  touch headscale/data/db.sqlite
-fi
-
-if [ ! -f caddy/Caddyfile ]; then
-  touch caddy/Caddyfile
-fi
-
+  # Set the correct SQLite database path for our Docker container
+echo "Preparing CrowdSec configurations..."
+# ==========================================
 # CROWDSEC CONFIGURATIONS (Only if missing)
+# ==========================================
+
 # Acquis.yaml
 if [ ! -f crowdsec/acquis.yaml ]; then
 cat << 'EOF' > crowdsec/acquis.yaml
@@ -34,7 +37,7 @@ poll_without_inotify: true
 EOF
 fi
 
-# Http.yaml (Notice the 'EOF' with quotes: no backslashes needed anymore!)
+# Http.yaml (Notification template for NTFY/Gotify)
 if [ ! -f crowdsec/config/notifications/http.yaml ]; then
 cat << 'EOF' > crowdsec/config/notifications/http.yaml
 type: http
@@ -87,7 +90,9 @@ on_success: break
 EOF
 fi
 
+# ==========================================
 # GEOIP MAXMIND: DOWNLOAD DATABASE
+# ==========================================
 GEOIP_DB="caddy/data/GeoLite2-Country.mmdb"
 GEOIP_URL="https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb"
 
@@ -113,7 +118,9 @@ else
     echo "✅ GeoIP DB downloaded."
 fi
 
+# ==========================================
 # ENV FILE GENERATION
+# ==========================================
 if [ ! -f .env ]; then
     echo "Generating .env file from .env.example..."
     cp .env.example .env
@@ -122,5 +129,4 @@ if [ ! -f .env ]; then
     echo "✅ .env file created."
 fi
 
-chmod -R 755 caddy/logs
 echo "Initialization complete! Edit .env and start with 'docker compose up -d'"

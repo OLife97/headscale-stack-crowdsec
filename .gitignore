@@ -4,6 +4,7 @@ caddy/config/
 caddy/logs/
 crowdsec/data/
 headscale/data/
+headscale/config/config.yaml
 .DS_Store
 Thumbs.db
 .vscode/
