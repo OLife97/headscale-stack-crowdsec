@@ -1,3 +1,4 @@
+name: headstack
 services:
   headscale:
     image: docker.io/headscale/headscale:${HEADSCALE_VERSION:-latest}
