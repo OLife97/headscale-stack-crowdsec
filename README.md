@@ -194,15 +194,6 @@ docker exec -it crowdsec cscli bouncers list
 
 # View active decisions (bans)
 docker exec -it crowdsec cscli decisions list
-
-# Manually ban an IP (permanent)
-docker exec -it crowdsec cscli decisions add --ip <IP_ADDRESS> --type ban --duration 0
-```
-
-### Caddy
-```bash
-# Reload Caddyfile without downtime
-docker exec -it caddy caddy reload --config /etc/caddy/Caddyfile
 ```
 
 ---
