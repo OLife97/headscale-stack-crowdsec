@@ -48,8 +48,7 @@ control server — secured by [CrowdSec](https://www.crowdsec.net) and reverse-p
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/olife97/headscale-stack-crowdsec.git
-cd headscale-stack-crowdsec
+git clone https://github.com/olife97/headscale-stack-crowdsec.git && cd headscale-stack-crowdsec
 ```
 
 ### 2. Run the initialization script
@@ -62,8 +61,7 @@ This will:
 - Copy `.env.example` to `.env`
 
 ```bash
-chmod +x init.sh
-./init.sh
+chmod +x init.sh && ./init.sh
 ```
 
 ### 3. Configure the environment
@@ -73,8 +71,27 @@ Open `.env` and fill in your values. Pay special attention to the OIDC Whitelist
 ```bash
 nano .env
 ```
+### 4. Generate Secrets
 
-### 4. Start the stack
+#### Cloudflare API Token
+- Go to [Cloudflare Dashboard → Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+- Click **Create Token** → **Edit zone DNS** template
+- Under **Zone Resources**, select your domain
+- Copy the token into `CF_API_TOKEN` in `.env`
+
+#### Google OAuth2 Credentials (OIDC)
+- Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
+- Click **Create Credentials → OAuth 2.0 Client ID** (Web application)
+- Add the following **Authorized redirect URI**:
+   ```
+   https://subdomain.domain.tld/oidc/callback
+   ```
+- Copy **Client ID** and **Client Secret** into `.env`
+
+> [!WARNING]
+> The redirect URI in Google Console must match **exactly** the Headscale `server_url` + `/oidc/callback`.
+
+### 5. Start the stack
 
 ```bash
 docker compose up -d
@@ -107,7 +124,10 @@ CROWDSEC_NOTIFY_URL=https://gotify.yourdomain.com/message
 CROWDSEC_NOTIFY_AUTH_HEADER=X-Gotify-Key
 CROWDSEC_NOTIFY_AUTH_TOKEN="your_app_token"
 ```
-
+Test notifications:
+```bash
+docker exec crowdsec cscli notifications test http_default
+```
 ---
 
 ## 🛂 OIDC Access Control (Whitelist)
@@ -136,28 +156,6 @@ Headscale allows you to restrict who can join your VPN network. In the `.env` fi
 | `CROWDSEC_NOTIFY_*`                            | Webhook URL and Auth tokens for ban alerts                                  |
 | `HEADSCALE_OIDC_ISSUER`                        | OIDC issuer URL (e.g., `https://accounts.google.com`)                       |
 | `HEADSCALE_OIDC_CLIENT_ID`                     | OAuth2 Client ID                                                            |
-
----
-
-## 🔐 Generating Secrets
-
-### Cloudflare API Token
-1. Go to [Cloudflare Dashboard → Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens)
-2. Click **Create Token** → **Edit zone DNS** template
-3. Under **Zone Resources**, select your domain
-4. Copy the token into `CF_API_TOKEN` in `.env`
-
-### Google OAuth2 Credentials (OIDC)
-1. Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
-2. Click **Create Credentials → OAuth 2.0 Client ID** (Web application)
-3. Add the following **Authorized redirect URI**:
-   ```
-   https://SUBDOMAIN.DOMAIN/oidc/callback
-   ```
-4. Copy **Client ID** and **Client Secret** into `.env`
-
-> [!WARNING]
-> The redirect URI in Google Console must match **exactly** the Headscale `server_url` + `/oidc/callback`.
 
 ---
 
@@ -219,9 +217,28 @@ The following paths contain **persistent state** and should be backed up regular
 | `headscale/data/*.key`      | Private keys (loss = full re-enrollment of all clients) |
 | `.env`                      | All secrets (store encrypted)         |
 
+
+### 🛑 Crucial Backup Rule: Stop the Stack First
+Because Headscale uses a SQLite database (`db.sqlite`), copying the file while the container is actively writing to it can lead to severe database corruption.
+**Always stop the stack before running your backup script:**
+```bash
+docker compose down
+# Run your rsync / tar / backup command here
+docker compose up -d
+```
+
+### 💡  Note on Storage Architecture (Bind Mounts vs Volumes)
+By design, this stack uses **Bind Mounts** (e.g., `./headscale/data:/var/lib/headscale`) for persistent data instead of native Docker Named Volumes. 
+This was a deliberate choice to make backups extremely simple for homelab usersâ€”you can just `tar` or `rsync` the project folder without having to dive into `/var/lib/docker/volumes/` as the `root` user.
+
+However, if you are an advanced sysadmin migrating to a production environment (or running on a specialized filesystem like ZFS), you can easily convert these to Docker Named Volumes by editing the `compose.yaml`:
+1. Change `./headscale/data:/var/lib/headscale` to `headscale_data:/var/lib/headscale`
+2. Declare `headscale_data:` under the top-level `volumes:` block.
+
 > [!CAUTION]
 > Loss of `noise_private.key` or `private.key` from `headscale/data/` requires
 > **all clients to re-enroll**. Treat these files as you would SSH private keys.
+
 
 ## 🙏 Acknowledgments
 This stack is made possible by the incredible work of the open-source community. A huge thank you to:
