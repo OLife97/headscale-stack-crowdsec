@@ -250,7 +250,7 @@ docker compose up -d
 
 ### 💡  Note on Storage Architecture (Bind Mounts vs Volumes)
 By design, this stack uses **Bind Mounts** (e.g., `./headscale/data:/var/lib/headscale`) for persistent data instead of native Docker Named Volumes. 
-This was a deliberate choice to make backups extremely simple for homelab usersâ€”you can just `tar` or `rsync` the project folder without having to dive into `/var/lib/docker/volumes/` as the `root` user.
+This was a deliberate choice to make backups extremely simple for homelab users, you can just `tar` or `rsync` the project folder without having to dive into `/var/lib/docker/volumes/` as the `root` user.
 
 However, if you are an advanced sysadmin migrating to a production environment (or running on a specialized filesystem like ZFS), you can easily convert these to Docker Named Volumes by editing the `compose.yaml`:
 1. Change `./headscale/data:/var/lib/headscale` to `headscale_data:/var/lib/headscale`
