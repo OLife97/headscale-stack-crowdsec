@@ -1,6 +1,6 @@
 services:
   headscale:
-    image: headscale/headscale:latest
+    image: headscale/headscale:${HEADSCALE_VERSION:-latest}
     container_name: headscale
     restart: unless-stopped
     command: serve
@@ -11,7 +11,12 @@ services:
       - ./headscale/data:/var/lib/headscale
     env_file: .env
     environment:
-      - HEADSCALE_SERVER_URL=${SUBDOMAIN}.${DOMAIN}
+      - HEADSCALE_SERVER_URL=https://${SUBDOMAIN}.${DOMAIN}
+    networks:
+      - proxy
+    depends_on:
+      caddy:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 10s
@@ -19,7 +24,7 @@ services:
       retries: 3
 
   caddy:
-    image: ghcr.io/olife97/dhi-caddy-cloudflare:latest
+    image: ghcr.io/olife97/dhi-caddy-cloudflare:${CADDY_VERSION:-latest}
     container_name: caddy
     restart: unless-stopped
     ports:
@@ -37,22 +42,45 @@ services:
       - FULLDOMAIN=${SUBDOMAIN}.${DOMAIN}
       - CF_API_TOKEN=${CF_API_TOKEN}
       - CROWDSEC_BOUNCER_KEY=${CROWDSEC_BOUNCER_KEY}
+      - ALLOWED_COUNTRIES=${ALLOWED_COUNTRIES}
+    networks:
+      - proxy
+    depends_on:
+      crowdsec:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/config/"]
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 60s
 
   # --- CROWDSEC (Motore di sicurezza) ---
   crowdsec:
-    image: crowdsecurity/crowdsec:latest
+    image: crowdsecurity/crowdsec:${CROWDSEC_VERSION:-latest}
     container_name: crowdsec
     restart: unless-stopped
     volumes:
       - ./crowdsec/data:/var/lib/crowdsec/data
-      - ./crowdsec/config:/etc/crowdsec
       - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
       - ./caddy/logs:/var/log/caddy:ro
+      - ./crowdsec/config/profiles.yaml:/etc/crowdsec/profiles.yaml:ro
+      - ./crowdsec/config/notifications/http.yaml:/etc/crowdsec/notifications/http.yaml:ro
     environment:
       - COLLECTIONS=crowdsecurity/caddy crowdsecurity/base-http-scenarios crowdsecurity/linux
       - BOUNCER_KEY_CADDY=${CROWDSEC_BOUNCER_KEY}
+      - CROWDSEC_NOTIFY_URL=${CROWDSEC_NOTIFY_URL:-}
+      - CROWDSEC_NOTIFY_AUTH_HEADER=${CROWDSEC_NOTIFY_AUTH_HEADER:-}
+      - CROWDSEC_NOTIFY_AUTH_TOKEN=${CROWDSEC_NOTIFY_AUTH_TOKEN:-}
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  proxy:
+    driver: bridge

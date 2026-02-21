@@ -1,9 +1,11 @@
 .env
 caddy/data/
+caddy/config/
 caddy/logs/
 crowdsec/data/
 headscale/data/
-headscale/config/private.key
-headscale/config/noise_private.key
 .DS_Store
 Thumbs.db
+.vscode/
+*.swp
+*.swo
