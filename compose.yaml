@@ -61,7 +61,7 @@ services:
       retries: 3
       start_period: 60s
 
-  # --- CROWDSEC (Motore di sicurezza) ---
+  # --- CROWDSEC ---
   crowdsec:
     image: crowdsecurity/crowdsec:${CROWDSEC_VERSION:-latest}
     container_name: crowdsec
