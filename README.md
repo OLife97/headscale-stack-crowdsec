@@ -63,6 +63,27 @@ This will:
 ```bash
 chmod +x init.sh && ./init.sh
 ```
+<details>
+<summary><b>🛠️ Curious what <code>init.sh</code> actually does? (Click to expand)</b></summary>
+
+For transparency and security, here is exactly what the initialization script automates:
+
+1. **Directory Creation:** Safely creates the necessary local directories for bind mounts (`headscale/config`, `headscale/data`, `crowdsec/...`) *before* Docker starts, preventing permission issues.
+2. **Headscale Config Provisioning:** Downloads the latest official `config-example.yaml` from the Headscale repository and strictly adjusts the `db_path` to match our Docker container environment.
+3. **CrowdSec Provisioning:** Auto-generates three critical YAML files if they don't exist:
+   - `acquis.yaml` (Instructs CrowdSec to read Caddy's JSON logs).
+   - `http.yaml` (Sets up the payload format for NTFY/Gotify push notifications).
+   - `profiles.yaml` (Ties IP bans to the HTTP notification trigger).
+4. **MaxMind GeoIP Database:** Downloads the free `GeoLite2-Country.mmdb`.
+5. **Secure `.env` Generation:** Copies `.env.example` to `.env` and uses `openssl rand -hex 32` to automatically generate a highly secure cryptographic token for the `CROWDSEC_BOUNCER_KEY`.
+
+> **Safe to run multiple times!**
+> It checks for the existence of your config files before creating them, meaning it **will never overwrite** your custom `.env` or YAML configurations.
+> 
+> You can (and should) **re-run `./init.sh` anytime** to check the age of your MaxMind GeoIP database. If it's older than 30 days, the script will automatically prompt you to download the latest updates.
+
+</details>
+
 
 ### 3. Configure the environment
 
