@@ -287,6 +287,7 @@ This project is licensed under the **MIT License**.
 
 <p align="center">
   Made with ❤️ for self-hosters who believe their infrastructure should be fully under their control.
+  This README and some-other parts of this repo are Vibe-coded.
 </p>
 
 ---
