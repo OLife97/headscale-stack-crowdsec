@@ -156,7 +156,7 @@ docker exec crowdsec cscli notifications test http_default
 Headscale allows you to restrict who can join your VPN network. In the `.env` file, you **must choose one** of the following three methods:
 
 1. **`HEADSCALE_OIDC_ALLOWED_USERS`** 
-   - **Best for:** Families, small teams (e.g., `"user1@gmail.com,user2@gmail.com"`)
+   - **Best for:** Families, small teams (e.g., `"user1@gmail.com user2@gmail.com"`)
 2. **`HEADSCALE_OIDC_ALLOWED_DOMAINS`**
    - **Best for:** Companies with custom IdPs (e.g., `"yourcompany.com"`)
    - *(⚠️ WARNING: Never use public domains like `gmail.com` here!)*
