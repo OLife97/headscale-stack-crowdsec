@@ -92,14 +92,26 @@ services:
     container_name: headplane
     restart: unless-stopped
     environment:
-    - HEADPLANE_LOAD_ENV_OVERRIDES=true
-    - HEADPLANE_SERVER__ADDR=:3000
-    - HEADPLANE_HEADSCALE__URL=http://headscale:8080
-    - HEADPLANE_OIDC__ENABLED=true
-    - HEADPLANE_OIDC__CLIENT_ID=$(HEADSCALE_OIDC_CLIENT_ID)
-    - HEADPLANE_OIDC__CLIENT_SECRET=$(HEADSCALE_OIDC_SECRET)
-    - HEADPLANE_OIDC__ISSUER=$(HEADSCALE_OIDC_ISSUER)
-    - HEADPLANE_BASE_URL=https://${SUBDOMAIN}.${DOMAIN}/admin/
+      # --- SERVER SETTINGS ---
+      - HEADPLANE_SERVER__ADDR=0.0.0.0:3000
+      - HEADPLANE_SERVER__COOKIE_SECRET=${HEADPLANE_COOKIE_SECRET}
+      - HEADPLANE_SERVER__BASE_URL=https://${SUBDOMAIN}.${DOMAIN}/admin
+
+      # --- HEADSCALE CONNECTION ---
+      - HEADPLANE_HEADSCALE__URL=http://headscale:8080
+      - HEADPLANE_HEADSCALE__API_KEY=${HEADSCALE_API_KEY}
+
+      # --- LOCAL AUTH (Richiesto come fallback) ---
+      - HEADPLANE_JWT__SECRET=${HEADPLANE_JWT_SECRET}
+
+      # --- OIDC / SSO SETTINGS ---
+      - HEADPLANE_OIDC__ENABLED=true
+      - HEADPLANE_OIDC__ISSUER=${HEADSCALE_OIDC_ISSUER}
+      - HEADPLANE_OIDC__CLIENT_ID=${HEADSCALE_OIDC_CLIENT_ID}
+      - HEADPLANE_OIDC__CLIENT_SECRET=${HEADSCALE_OIDC_CLIENT_SECRET}
+      - HEADPLANE_OIDC__SCOPES=openid email profile
+      - HEADPLANE_OIDC__HEADSCALE_API_KEY=${HEADSCALE_API_KEY}
+      - HEADPLANE_OIDC__TOKEN_AUTH_METHOD=client_secret_post
     volumes:
       - ./headplane/config/config.yaml:/etc/headplane/config.yaml
       - ./headplane/data:/var/lib/headplane

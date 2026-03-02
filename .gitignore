@@ -5,8 +5,11 @@ caddy/logs/
 crowdsec/data/
 headscale/data/
 headscale/config/config.yaml
+headplane/config/config.yaml
 .DS_Store
 Thumbs.db
 .vscode/
 *.swp
 *.swo
+acquis.yam
+*.db

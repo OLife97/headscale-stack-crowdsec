@@ -1,0 +1,32 @@
+type: http
+name: http_default
+log_level: info
+
+# Accumulate alerts for 30 seconds before sending to avoid notification flood
+group_wait: 30s
+
+format: |
+  {{range . -}}
+  {{$alert := . -}}
+  {{range .Decisions -}}
+  🚨 CrowdSec Ban
+  IP: {{.Value}}
+  Duration: {{.Duration}}
+  Scenario: {{$alert.Scenario}}
+  {{end -}}
+  {{end -}}
+
+url: ${CROWDSEC_NOTIFY_URL}
+method: POST
+
+# --- Choose your provider and comment the other ---
+#
+# NTFY: uncomment these two lines
+headers:
+  Authorization: ${CROWDSEC_NOTIFY_AUTH_TOKEN}
+  Title: "CrowdSec Alert"
+  Tags: "warning,skull"
+#
+# GOTIFY: comment the block above and uncomment these two lines
+# headers:
+#   X-Gotify-Key: ${CROWDSEC_NOTIFY_AUTH_TOKEN}

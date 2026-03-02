@@ -39,14 +39,14 @@
         }
     }
 
-    # Headplane
-    @headplane path /admin/*
-    handle @headplane @geofilter {
-        reverse_proxy headplane:3000
-    }
-
-    # Headscale
     handle @geofilter {
+        # Headplane su /admin/*
+        @headplane path /admin/*
+        handle @headplane {
+            reverse_proxy headplane:3000
+        }
+        
+        # Headscale su tutto il resto
         reverse_proxy headscale:8080
     }
 

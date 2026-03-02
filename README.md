@@ -1,3 +1,10 @@
+>[!CAUTION] <br>
+> **This is a work in progress** <br>
+> At the moment headplane refuse to accept Google OAUTH <br>
+> INFO: OIDC connector initialized successfully <br>
+> ERROR: Got an OIDC response error body: {"error":"invalid_client","error_description":"The OAuth client was not found."} <br>
+
+
 # 🛡️ Headscale + Caddy + CrowdSec Stack
 
 A production-ready, minimal, and fully environment-driven Docker Compose stack for self-hosting
