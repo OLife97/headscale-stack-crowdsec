@@ -87,6 +87,16 @@ services:
       retries: 3
       start_period: 30s
 
+  headplane:
+    image: ghcr.io/tale/headplane:latest
+    container_name: headplane
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - './config.yaml:/etc/headplane/config.yaml'
+      - './headplane-data:/var/lib/headplane'
+
 networks:
   proxy:
     driver: bridge

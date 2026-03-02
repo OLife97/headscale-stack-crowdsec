@@ -23,7 +23,7 @@
     }
 }
 
-# VHOST: HEADSCALE
+# VHOST: HEADSCALE + HEADPLANE
 {$FULLDOMAIN} {
     crowdsec
 
@@ -39,6 +39,13 @@
         }
     }
 
+    # Headplane
+    @headplane path /admin/*
+    handle @headplane @geofilter {
+        reverse_proxy headplane:3000
+    }
+
+    # Headscale
     handle @geofilter {
         reverse_proxy headscale:8080
     }
