@@ -1,8 +1,12 @@
->[!CAUTION] <br>
-> **This is a work in progress** <br>
-> At the moment headplane refuse to accept Google OAUTH <br>
-> INFO: OIDC connector initialized successfully <br>
-> ERROR: Got an OIDC response error body: {"error":"invalid_client","error_description":"The OAuth client was not found."} <br>
+> [!CAUTION]
+> **This is a work in progress.**
+> Currently, Headplane is failing to authenticate via Google OAuth. You might encounter the following error:
+> 
+> ```text
+> INFO: OIDC connector initialized successfully
+> ERROR: Got an OIDC response error body: {"error":"invalid_client","error_description":"The OAuth client was not found."}
+> ```
+
 
 
 # 🛡️ Headscale + Caddy + CrowdSec Stack
