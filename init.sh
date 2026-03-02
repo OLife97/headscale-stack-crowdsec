@@ -18,7 +18,7 @@ if [ ! -f headscale/config/config.yaml ]; then
   
   sed -i 's|db_path:.*|db_path: /var/lib/headscale/db.sqlite|' headscale/config/config.yaml
   echo "✅ Headscale config downloaded."
-fi  
+fi 
 
   # Set the correct SQLite database path for our Docker container
 echo "Preparing CrowdSec configurations..."

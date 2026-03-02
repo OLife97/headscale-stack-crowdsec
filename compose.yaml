@@ -91,11 +91,23 @@ services:
     image: ghcr.io/tale/headplane:latest
     container_name: headplane
     restart: unless-stopped
-    ports:
-      - '3000:3000'
+    environment:
+    - HEADPLANE_LOAD_ENV_OVERRIDES=true
+    - HEADPLANE_SERVER__ADDR=:3000
+    - HEADPLANE_HEADSCALE__URL=http://headscale:8080
+    - HEADPLANE_OIDC__ENABLED=true
+    - HEADPLANE_OIDC__CLIENT_ID=$(HEADSCALE_OIDC_CLIENT_ID)
+    - HEADPLANE_OIDC__CLIENT_SECRET=$(HEADSCALE_OIDC_SECRET)
+    - HEADPLANE_OIDC__ISSUER=$(HEADSCALE_OIDC_ISSUER)
+    - HEADPLANE_BASE_URL=https://${SUBDOMAIN}.${DOMAIN}/admin/
     volumes:
-      - './config.yaml:/etc/headplane/config.yaml'
-      - './headplane-data:/var/lib/headplane'
+      - ./headplane/config/config.yaml:/etc/headplane/config.yaml
+      - ./headplane/data:/var/lib/headplane
+    networks:
+      - proxy
+    depends_on:
+      headscale:
+        condition: service_healthy
 
 networks:
   proxy:
